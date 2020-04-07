@@ -1,0 +1,55 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="ChosenStationControl">
+        <item name="android:background">@color/chosen_station_bg</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:elevation">8dp</item>
+    </style>
+
+    <style name="stationNameTextView">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:textColor">#000000</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <style name="updateLocationImageView">
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <style name="routeLabel">
+        <item name="android:padding">4dp</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:layout_marginEnd">4dp</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:background">#5c947d</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAlignment">center</item>
+    </style>
+
+    <style name="lineDirection">
+        <item name="android:padding">8dp</item>
+    </style>
+
+    <style name="timeToDeparture">
+        <item name="android:padding">8dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+
+</resources>

@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">MVG Departures</string>
+    <string name="location_access_required">Location access is required</string>
+    <string name="location_data_not_available">Location data is not available</string>
+    <string name="no_stations_around">There are no MVG stations nearby</string>
+    <string name="trying_to_determine_location">Getting your location&#8230;</string>
+    <string name="stations_dialog_title">Choose station</string>
+    <string name="stations_data_not_available">Failed to retrieve nearby stations</string>
+    <string name="departures_not_found">No departures found</string>
+</resources>
