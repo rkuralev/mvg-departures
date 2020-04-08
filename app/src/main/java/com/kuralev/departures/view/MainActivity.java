@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
     private TextView listEmptyView;
     private ImageView updateLocationButton;
     private Station chosenStation;
+    private final static int NUMBER_OF_NEARBY_STATIONS_TO_SHOW = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,23 +88,28 @@ public class MainActivity extends AppCompatActivity implements MainView {
         stationName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final List<Station> nearbyStations = controller.getNearbyStations();
+                final List<Station> nearbyStationsList = controller.getNearbyStations();
 
-                if (nearbyStations.size() == 0)
+                if (nearbyStationsList.size() == 0)
                     return;
 
-                final String[] nearbyStationsNames = new String[nearbyStations.size()];
+                final String[] nearbyStationsArray = new String[NUMBER_OF_NEARBY_STATIONS_TO_SHOW];
 
-                for (int i = 0; i < nearbyStations.size(); i++)
-                    nearbyStationsNames[i] = nearbyStations.get(i).getStationName();
+                for (int i = 0; i < NUMBER_OF_NEARBY_STATIONS_TO_SHOW; i++)
+                    nearbyStationsArray[i] =
+                            String.format(getString(R.string.station_name_format),
+                                    nearbyStationsList.get(i).getStationName(),
+                                    nearbyStationsList.get(i).getDistanceToStation());
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle(R.string.stations_dialog_title);
-                builder.setItems(nearbyStationsNames, new DialogInterface.OnClickListener() {
+                builder.setItems(nearbyStationsArray, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        chosenStation = nearbyStations.get(which);
-                        stationName.setText(chosenStation.getStationName());
+                        chosenStation = nearbyStationsList.get(which);
+                        stationName.setText(String.format(getString(R.string.station_name_format),
+                                chosenStation.getStationName(),
+                                chosenStation.getDistanceToStation()));
                         swipeRefreshLayout.setRefreshing(true);
                         controller.updateDeparturesList(chosenStation);
                     }
@@ -136,7 +142,9 @@ public class MainActivity extends AppCompatActivity implements MainView {
     public void currentStationChanged(Station station) {
         if (station != null) {
             chosenStation = station;
-            stationName.setText(chosenStation.getStationName());
+            stationName.setText(String.format(getString(R.string.station_name_format),
+                    chosenStation.getStationName(),
+                    chosenStation.getDistanceToStation()));
         }
         else {
             showMessage(R.string.stations_data_not_available);

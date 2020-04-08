@@ -7,4 +7,5 @@
     <string name="stations_dialog_title">Choose station</string>
     <string name="stations_data_not_available">Failed to retrieve nearby stations</string>
     <string name="departures_not_found">No departures found</string>
+    <string name="station_name_format">%s (%s m)</string>
 </resources>

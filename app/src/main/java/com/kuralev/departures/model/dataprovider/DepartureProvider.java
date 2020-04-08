@@ -7,6 +7,6 @@ import com.kuralev.departures.model.station.Station;
 import java.util.List;
 
 public interface DepartureProvider {
-    List<Departure> getDepartures(Station station);
-    List<Station> getNearbyStations(Location location);
+    List<Departure> fetchDepartures(Station station);
+    List<Station> fetchNearbyStations(Location location);
 }

@@ -31,6 +31,6 @@ public class StationsLoader extends AsyncTaskLoader<List<Station>> {
     @Override
     public List<Station> loadInBackground() {
         DepartureProvider departureProvider = MvgApiProvider.getInstance();
-        return departureProvider.getNearbyStations(location);
+        return departureProvider.fetchNearbyStations(location);
     }
 }

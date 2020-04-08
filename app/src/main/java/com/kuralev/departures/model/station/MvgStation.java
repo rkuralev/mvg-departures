@@ -1,12 +1,20 @@
 package com.kuralev.departures.model.station;
 
-public class MvgStation implements Station {
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class MvgStation implements Station {
     private String stationName;
     private String stationId;
     private String distanceToStation;
 
-    public MvgStation(String stationName, String stationId, String distanceToStation) {
+    @JsonCreator
+    public MvgStation(
+            @JsonProperty("name") String stationName,
+            @JsonProperty("id") String stationId,
+            @JsonProperty("distance") String distanceToStation) {
         this.stationName = stationName;
         this.stationId = stationId;
         this.distanceToStation = distanceToStation;
@@ -14,10 +22,12 @@ public class MvgStation implements Station {
 
     @Override
     public String getStationName() {
-        String result = stationName;
-        if (!distanceToStation.isEmpty())
-            result += String.format(" (%s m)", distanceToStation);
-        return result;
+        return stationName;
+    }
+
+    @Override
+    public String getDistanceToStation() {
+        return distanceToStation;
     }
 
     @Override

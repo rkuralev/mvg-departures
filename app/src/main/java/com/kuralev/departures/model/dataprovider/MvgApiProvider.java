@@ -2,28 +2,19 @@ package com.kuralev.departures.model.dataprovider;
 
 import android.util.Log;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kuralev.departures.locationprovider.Location;
 import com.kuralev.departures.model.departure.Departure;
-import com.kuralev.departures.model.departure.MvgDeparture;
-import com.kuralev.departures.model.station.MvgStation;
+import com.kuralev.departures.model.departure.MvgDeparturesList;
+import com.kuralev.departures.model.station.MvgStationsList;
 import com.kuralev.departures.model.station.Station;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.math.BigInteger;
-import java.net.MalformedURLException;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.net.ssl.HttpsURLConnection;
 
 public class MvgApiProvider implements DepartureProvider {
 
@@ -32,9 +23,6 @@ public class MvgApiProvider implements DepartureProvider {
     private final static String AUTH_KEY = "5af1beca494712ed38d313714d4caff6";
     private final static String USER_AGENT = "java-mvg-api/1";
     private final static String LOG_TAG = "MVGAPIProvider";
-    private final static int NUMBER_OF_NEARBY_STATIONS = 10;
-    private List<Station> stations;
-    private Location lastLocation = null;
     private static MvgApiProvider instance;
 
     private MvgApiProvider() {}
@@ -45,113 +33,61 @@ public class MvgApiProvider implements DepartureProvider {
         return instance;
     }
 
-    //TODO Roman: migrate to Jackson
-
     @Override
-    public List<Departure> getDepartures(Station station) {
-        List<Departure> departures  = new ArrayList<>();
-        String JSONResponse = "";
-        String requestUrl = DEPARTURES_URL.replace("{id}", station.getStationId());
+    public List<Departure> fetchDepartures(Station station) {
+        if (station == null)
+            return new ArrayList<>();
 
-        try {
-            URL url = new URL(requestUrl);
-            JSONResponse = makeApiRequest(url);
-        } catch (MalformedURLException e) {
-            Log.e(LOG_TAG, "Unable to form correct URL :: " + requestUrl);
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "Unable to retrieve data from MVG :: " + e.getMessage());
-        }
+        String requestUrl = DEPARTURES_URL
+                .replace("{id}", station.getStationId());
 
-        try {
-
-            JSONObject root = new JSONObject(JSONResponse);
-            JSONArray departuresJSONArray = root.getJSONArray("departures");
-            for (int i = 0; i < departuresJSONArray.length(); i++) {
-                JSONObject dep = departuresJSONArray.getJSONObject(i);
-
-                String lineNumber = dep.getString("label");
-                String destination = dep.getString("destination");
-                String bgColor = dep.getString("lineBackgroundColor");
-                BigInteger departureTimeInMs = new BigInteger(dep.getString("departureTime"));
-                BigInteger departureTimeInSeconds = departureTimeInMs.divide(new BigInteger("1000"));
-                long departureTime = departureTimeInSeconds.longValue();
-
-                departures.add(new MvgDeparture(lineNumber, bgColor, destination, departureTime));
-            }
-
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Unable to parse location JSON :: " + JSONResponse);
-        }
-
-        return departures;
+        return retrieveDataFromApi(requestUrl, MvgDeparturesList.class).getDepartureList();
     }
 
     @Override
-    public List<Station> getNearbyStations(Location location) {
-        if (location.equals(lastLocation))
-            return stations;
+    public List<Station> fetchNearbyStations(Location location) {
+        if (location == null)
+            return new ArrayList<>();
 
-        lastLocation = location;
-        stations = new ArrayList<>();
-        String requestUrl = NEARBY_URL.replace("{lat}", location.getLatitude()).replace("{lon}", location.getLongitude());
-        String JSONResponse = "";
+        String requestUrl = NEARBY_URL
+                .replace("{lat}", location.getLatitude())
+                .replace("{lon}", location.getLongitude());
 
+        return retrieveDataFromApi(requestUrl, MvgStationsList.class).getStationList();
+    }
+
+    /** Makes an API request and returns an object of a corresponding class
+      executes GET request and parses the result using Jackson */
+
+    private <T> T retrieveDataFromApi(String url, Class<T> clazz) {
+        InputStream is = null;
+        HttpURLConnection connection = null;
+        T result = null;
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            URL url = new URL(requestUrl);
-            JSONResponse = makeApiRequest(url);
-        } catch (MalformedURLException e) {
-            Log.e(LOG_TAG, "Unable to form correct URL :: " + requestUrl);
+            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("accept", "application/json");
+            connection.setRequestProperty("User-Agent", USER_AGENT);
+            connection.setRequestProperty("X-MVG-Authorization-Key", AUTH_KEY);
+            is = connection.getInputStream();
+            result = mapper.readValue(is, clazz);
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Unable to retrieve data from MVG :: " + e.getMessage());
-        }
-
-        try {
-            JSONObject root = new JSONObject(JSONResponse);
-            JSONArray stationLocations = root.getJSONArray("locations");
-            int maxNumberOfStations = Math.min(NUMBER_OF_NEARBY_STATIONS, stationLocations.length());
-            for (int i = 0; i < maxNumberOfStations; i++) {
-                JSONObject st = stationLocations.getJSONObject(i);
-                String stationName = st.getString("name");
-                String stationId = st.getString("id");
-                String distanceToStation = st.getString("distance");
-                stations.add(new MvgStation(stationName, stationId, distanceToStation));
+            Log.e(LOG_TAG, e.getMessage());
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, e.getMessage());
+                }
             }
-
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Unable to parse location JSON :: " + JSONResponse);
-        }
-
-        return stations;
-    }
-
-    private String makeApiRequest(URL url) throws IOException {
-        HttpsURLConnection connection;
-        InputStream inputStream;
-        connection = (HttpsURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("accept", "application/json");
-        connection.setRequestProperty("User-Agent", USER_AGENT);
-        connection.setRequestProperty("X-MVG-Authorization-Key", AUTH_KEY);
-        connection.setReadTimeout(10000);
-        connection.setConnectTimeout(15000);
-        connection.connect();
-        inputStream = connection.getInputStream();
-
-        return readFromStream(inputStream);
-    }
-
-    private String readFromStream(InputStream inputStream) throws IOException {
-        StringBuilder output = new StringBuilder();
-        if (inputStream != null) {
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-            BufferedReader reader = new BufferedReader(inputStreamReader);
-            String line = reader.readLine();
-            while (line != null) {
-                output.append(line);
-                line = reader.readLine();
+            if (connection != null) {
+                connection.disconnect();
             }
         }
-        return output.toString();
+        return result;
     }
-
 }

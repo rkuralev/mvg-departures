@@ -1,6 +1,7 @@
 package com.kuralev.departures.view;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,10 +35,17 @@ public class DeparturesListAdapter extends ArrayAdapter<Departure> {
         TextView timeToDeparture = listItemView.findViewById(R.id.time_to_departure);
 
         lineNumber.setText(departure.getLineNumber());
-        lineNumber.setBackgroundColor(departure.getLineColor());
+        lineNumber.setBackgroundColor(Color.parseColor(departure.getLineColor())); //color is in hex #0d5c70
         lineDirection.setText(departure.getLineDirection());
-        timeToDeparture.setText(departure.getTimeToDeparture());
+        timeToDeparture.setText(calculateTimeToDeparture(departure.getDepartureTime()));
 
         return listItemView;
+    }
+
+    private String calculateTimeToDeparture(long departureTimeInMs) {
+        //departureTime is in milliseconds (UNIX epoch)
+        long now = System.currentTimeMillis();
+        int timeToDeparture = (int) (departureTimeInMs - now) / 1000 / 60;
+        return String.valueOf(Math.max(timeToDeparture, 0));
     }
 }

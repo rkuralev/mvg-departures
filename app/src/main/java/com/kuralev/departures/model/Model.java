@@ -24,7 +24,6 @@ public class Model {
     private MainView mainView;
     private AppCompatActivity activity;
     private List<Station> nearbyStations = new ArrayList<>();
-    private List<Departure> departureList = new ArrayList<>();
     private final static int STATIONS_LOADER_ID = 0;
     private final static int DEPARTURES_LOADER_ID = 1;
     private LocationProvider locationProvider;
@@ -105,7 +104,6 @@ public class Model {
     }
 
     public void departuresListUpdated(List<Departure> departureList) {
-        this.departureList = departureList;
         if (departureList != null && departureList.size() > 0)
             mainView.departureListUpdated(departureList);
         mainView.dataUpdateFinished();

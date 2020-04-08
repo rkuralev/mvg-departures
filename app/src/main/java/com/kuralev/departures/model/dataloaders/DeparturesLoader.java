@@ -31,6 +31,6 @@ public class DeparturesLoader extends AsyncTaskLoader<List<Departure>> {
     @Override
     public List<Departure> loadInBackground() {
         DepartureProvider departureProvider = MvgApiProvider.getInstance();
-        return departureProvider.getDepartures(station);
+        return departureProvider.fetchDepartures(station);
     }
 }
