@@ -33,36 +33,39 @@ public class MainActivity extends AppCompatActivity implements MainView {
     private TextView listEmptyView;
     private ImageView updateLocationButton;
     private Station chosenStation;
+    private ListView departuresList;
     private final static int NUMBER_OF_NEARBY_STATIONS_TO_SHOW = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         Model model = new Model(this, this);
         controller = new Controller(model);
-
         init();
     }
 
-    public void init() {
-        swipeRefreshLayout = findViewById(R.id.swipe_layout);
-        stationName = findViewById(R.id.station_name);
-        updateLocationButton = findViewById(R.id.update_location);
-
-        departuresListAdapter = controller.getDeparturesListAdapter(this);
-        ListView departuresList = findViewById(R.id.list_view);
-        departuresList.setAdapter(departuresListAdapter);
-
-        listEmptyView = findViewById(R.id.empty_view);
-        departuresList.setEmptyView(listEmptyView);
-
+    private void init() {
+        findViews();
+        configureDeparturesListView();
         setPullToRefreshListener();
         setUpdateLocationButtonOnClickListener();
         setOnStationNameClickListener();
-
         controller.updateDeparturesList();
+    }
+
+    private void configureDeparturesListView() {
+        departuresListAdapter = controller.getDeparturesListAdapter(this);
+        departuresList.setAdapter(departuresListAdapter);
+        departuresList.setEmptyView(listEmptyView);
+    }
+
+    private void findViews() {
+        swipeRefreshLayout = findViewById(R.id.swipe_layout);
+        stationName = findViewById(R.id.station_name);
+        updateLocationButton = findViewById(R.id.update_location);
+        departuresList = findViewById(R.id.list_view);
+        listEmptyView = findViewById(R.id.empty_view);
     }
 
     private void setPullToRefreshListener() {

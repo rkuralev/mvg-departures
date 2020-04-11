@@ -10,11 +10,12 @@ import com.kuralev.departures.model.station.MvgStationsList;
 import com.kuralev.departures.model.station.Station;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MvgApiProvider implements DepartureProvider {
 
@@ -41,7 +42,9 @@ public class MvgApiProvider implements DepartureProvider {
         String requestUrl = DEPARTURES_URL
                 .replace("{id}", station.getStationId());
 
-        return retrieveDataFromApi(requestUrl, MvgDeparturesList.class).getDepartureList();
+        MvgDeparturesList departuresList =  retrieveDataFromApi(requestUrl, MvgDeparturesList.class);
+
+        return (departuresList == null) ? null : departuresList.getDepartureList();
     }
 
     @Override
@@ -53,41 +56,37 @@ public class MvgApiProvider implements DepartureProvider {
                 .replace("{lat}", location.getLatitude())
                 .replace("{lon}", location.getLongitude());
 
-        return retrieveDataFromApi(requestUrl, MvgStationsList.class).getStationList();
+        MvgStationsList stationsList = retrieveDataFromApi(requestUrl, MvgStationsList.class);
+
+        return (stationsList == null) ? null : stationsList.getStationList();
     }
 
     /** Makes an API request and returns an object of a corresponding class
       executes GET request and parses the result using Jackson */
 
     private <T> T retrieveDataFromApi(String url, Class<T> clazz) {
-        InputStream is = null;
-        HttpURLConnection connection = null;
-        T result = null;
         ObjectMapper mapper = new ObjectMapper();
-        try {
-            connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setConnectTimeout(10000);
-            connection.setReadTimeout(10000);
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("accept", "application/json");
-            connection.setRequestProperty("User-Agent", USER_AGENT);
-            connection.setRequestProperty("X-MVG-Authorization-Key", AUTH_KEY);
-            is = connection.getInputStream();
-            result = mapper.readValue(is, clazz);
+        OkHttpClient client = new OkHttpClient();
+        T result = null;
+
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Accept","application/json")
+                .addHeader("User-Agent", USER_AGENT)
+                .addHeader("X-MVG-Authorization-Key", AUTH_KEY)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (response.isSuccessful() && response.body() != null) {
+                String jsonResponse = response.body().string();
+                result = mapper.readValue(jsonResponse, clazz);
+            }
+            else
+                Log.e(LOG_TAG,  String.format("API error. Response code: %d", response.code()));
         } catch (IOException e) {
             Log.e(LOG_TAG, e.getMessage());
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    Log.e(LOG_TAG, e.getMessage());
-                }
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
         }
+
         return result;
     }
 }

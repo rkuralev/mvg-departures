@@ -101,11 +101,15 @@ public class Model {
             updateDeparturesList(closestStation);
             mainView.currentStationChanged(closestStation);
         }
+        else
+            mainView.operationFailed(R.string.api_error);
     }
 
     public void departuresListUpdated(List<Departure> departureList) {
         if (departureList != null && departureList.size() > 0)
             mainView.departureListUpdated(departureList);
+        else
+            mainView.operationFailed(R.string.api_error);
         mainView.dataUpdateFinished();
     }
 }
