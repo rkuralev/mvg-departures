@@ -29,4 +29,4 @@ Pull-to-refresh and "update my location" features are also pretty useful and eas
 ## Notes to implementation
 * Udacity Android Developer course was the main source of information for me
 * Jackson is used for JSON parsing and HttpOk3 for making HTTP/S requests. Using these libraties doesn't add too much added value, only couple of megs, but I intentionally used them just to learn.
-* MVG doesn't have any official API so I checked their website and found that it uses RESTful backend. I hope that don't mind :)
+* MVG doesn't have any official API so I checked their website and found that it uses RESTful backend. I hope they don't mind :)
